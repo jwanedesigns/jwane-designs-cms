@@ -5,7 +5,7 @@ const Footer = () => (
     <div className="container mx-auto px-4 flex flex-col md:flex-row items-center justify-between gap-6 overflow-hidden">
       <Logo className="h-8 w-auto text-primary" role="img" />
       <div className="flex gap-6">
-        {["Work", "About", "Contact"].map(l => (
+        {["About", "Work", "Contact"].map(l => (
           <a
             key={l}
             href={`#${l.toLowerCase()}`}
