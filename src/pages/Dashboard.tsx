@@ -35,7 +35,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 
-type Tab = "portfolio" | "creators" | "settings";
+type Tab = "portfolio" | "testimonials" | "clients" | "settings";
 
 const GENRES = ["Gaming", "Vlog", "Horror", "Sports", "Other"];
 
@@ -114,10 +114,16 @@ const Dashboard = () => {
             label="Portfolio"
           />
           <NavItem 
-            active={activeTab === "creators"} 
-            onClick={() => setActiveTab("creators")}
+            active={activeTab === "testimonials"} 
+            onClick={() => setActiveTab("testimonials")}
             icon={<Users size={18} />}
-            label="Creators"
+            label="Testimonials"
+          />
+          <NavItem 
+            active={activeTab === "clients"} 
+            onClick={() => setActiveTab("clients")}
+            icon={<Database size={18} />}
+            label="Clients"
           />
           <NavItem 
             active={activeTab === "settings"} 
@@ -139,7 +145,7 @@ const Dashboard = () => {
       <main className="flex-1 relative overflow-y-auto custom-scrollbar">
         <header className="sticky top-0 z-10 bg-[#050505]/80 backdrop-blur-md border-b border-white/5 p-8 flex justify-between items-center">
           <h2 className="text-3xl font-display uppercase tracking-widest text-foreground">
-            {activeTab} <span className="text-primary/50 text-sm">/ Control Center</span>
+            {activeTab === "testimonials" ? "Testimonials" : activeTab} <span className="text-primary/50 text-sm">/ Control Center</span>
           </h2>
           <div className="flex gap-4">
              <Button 
@@ -155,7 +161,8 @@ const Dashboard = () => {
         <div className="p-8">
           <AnimatePresence mode="wait">
             {activeTab === "portfolio" && <PortfolioManager key="portfolio" />}
-            {activeTab === "creators" && <CreatorsManager key="creators" />}
+            {activeTab === "testimonials" && <TestimonialsManager key="testimonials" />}
+            {activeTab === "clients" && <ClientsManager key="clients" />}
             {activeTab === "settings" && <SettingsManager key="settings" />}
           </AnimatePresence>
         </div>
@@ -374,7 +381,7 @@ const PortfolioManager = () => {
   );
 };
 
-const CreatorsManager = () => {
+const TestimonialsManager = () => {
     const [items, setItems] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const [isModalOpen, setIsModalOpen] = useState(false);
@@ -504,6 +511,153 @@ const CreatorsManager = () => {
     );
 };
 
+const ClientsManager = () => {
+    const [items, setItems] = useState<any[]>([]);
+    const [loading, setLoading] = useState(true);
+    const [isModalOpen, setIsModalOpen] = useState(false);
+    const [editingItem, setEditingItem] = useState<any>(null);
+    const { toast } = useToast();
+
+    const [name, setName] = useState("");
+    const [subCount, setSubCount] = useState("");
+    const [imageFile, setImageFile] = useState<File | null>(null);
+    const [isSaving, setIsSaving] = useState(false);
+
+    useEffect(() => { fetchItems(); }, []);
+
+    const fetchItems = async () => {
+        const { data, error } = await supabase.from("clients").select("*").order("created_at", { ascending: false });
+        if (error) toast({ variant: "destructive", title: "Fetch Failed" });
+        else setItems(data || []);
+        setLoading(false);
+    };
+
+    const handleSave = async (e: React.FormEvent) => {
+        e.preventDefault();
+        setIsSaving(true);
+
+        let avatarUrl = editingItem?.avatar_url || "";
+
+        if (imageFile) {
+            const fileExt = imageFile.name.split('.').pop();
+            const fileName = `${Math.random()}.${fileExt}`;
+            const { error: uploadError } = await supabase.storage
+                .from('avatars')
+                .upload(fileName, imageFile);
+
+            if (uploadError) {
+                toast({ variant: "destructive", title: "Upload Failed", description: uploadError.message });
+                setIsSaving(false);
+                return;
+            }
+            
+            const { data: { publicUrl } } = supabase.storage.from('avatars').getPublicUrl(fileName);
+            avatarUrl = publicUrl;
+        }
+
+        const payload = { name, sub_count: subCount, avatar_url: avatarUrl };
+
+        const { error } = editingItem 
+            ? await supabase.from("clients").update(payload).eq("id", editingItem.id)
+            : await supabase.from("clients").insert([payload]);
+
+        if (error) {
+            toast({ variant: "destructive", title: "Save Failed", description: error.message });
+        } else {
+            toast({ title: "Success", description: editingItem ? "Client updated." : "New giant committed." });
+            setIsModalOpen(false);
+            fetchItems();
+        }
+        setIsSaving(false);
+    };
+
+    const handleEdit = (item: any) => {
+        setEditingItem(item);
+        setName(item.name);
+        setSubCount(item.sub_count);
+        setImageFile(null);
+        setIsModalOpen(true);
+    };
+
+    const openNewModal = () => {
+        setEditingItem(null);
+        setName("");
+        setSubCount("");
+        setImageFile(null);
+        setIsModalOpen(true);
+    };
+
+    const handleDelete = async (id: string) => {
+        if (!confirm("Are you sure? This giant will be removed from the marquee.")) return;
+        await supabase.from("clients").delete().eq("id", id);
+        fetchItems();
+    };
+
+    return (
+        <div className="space-y-6">
+            <div className="flex justify-between items-center">
+                <h3 className="text-xl font-display uppercase tracking-widest text-primary/80">Giant Roster</h3>
+                <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
+                    <Button 
+                        onClick={openNewModal}
+                        className="bg-primary text-black font-black uppercase tracking-widest text-[10px] h-11 px-8 rounded-full shadow-[0_0_20px_rgba(0,245,255,0.3)]"
+                    >
+                        <Plus size={16} className="mr-2" /> Add New Giant
+                    </Button>
+                    <DialogContent className="glass-card border-white/10 bg-[#0a0a0a]/95 text-foreground">
+                        <DialogHeader>
+                            <DialogTitle className="font-display uppercase tracking-widest">Giant Parameters</DialogTitle>
+                        </DialogHeader>
+                        <form onSubmit={handleSave} className="space-y-6 pt-4">
+                            <Input value={name} onChange={(e) => setName(e.target.value)} placeholder="Creator Name" required className="bg-black/40 border-white/10" />
+                            <Input value={subCount} onChange={(e) => setSubCount(e.target.value)} placeholder="Sub Count (e.g. 111M)" required className="bg-black/40 border-white/10" />
+                            <div className="space-y-2">
+                                <label className="text-[10px] uppercase font-black text-primary tracking-widest px-1">Avatar / Logo</label>
+                                <Input type="file" onChange={(e) => setImageFile(e.target.files?.[0] || null)} className="bg-black/40 border-white/10 file:text-primary file:font-bold file:uppercase file:text-[10px]" />
+                            </div>
+                            <Button type="submit" disabled={isSaving} className="w-full bg-primary text-black font-black uppercase tracking-widest">
+                                {isSaving ? "Syncing..." : "Commit to Marquee"}
+                            </Button>
+                        </form>
+                    </DialogContent>
+                </Dialog>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                {items.map(t => (
+                    <div key={t.id} className="glass-card rounded-2xl p-6 border-white/5 space-y-4 hover:border-primary/20 transition-all group flex flex-col items-center">
+                        <div className="w-16 h-16 rounded-full overflow-hidden border border-white/10 relative">
+                            {t.avatar_url ? (
+                                <img src={t.avatar_url} alt={t.name} className="w-full h-full object-cover" />
+                            ) : (
+                                <div className="w-full h-full bg-primary/5 flex items-center justify-center text-[8px] uppercase font-bold text-primary/40">No Avatar</div>
+                            )}
+                        </div>
+                        <div className="text-center">
+                            <h5 className="font-bold text-foreground">{t.name}</h5>
+                            <p className="text-[10px] uppercase tracking-widest text-primary">{t.sub_count} subs</p>
+                        </div>
+                        <div className="flex gap-2 opacity-30 group-hover:opacity-100 transition-opacity">
+                            <button 
+                                onClick={() => handleEdit(t)} 
+                                className="p-2 text-muted-foreground hover:text-primary transition-colors"
+                            >
+                                <Pencil size={16} />
+                            </button>
+                            <button 
+                                onClick={() => handleDelete(t.id)} 
+                                className="p-2 text-muted-foreground hover:text-destructive transition-colors"
+                            >
+                                <Trash2 size={16} />
+                            </button>
+                        </div>
+                    </div>
+                ))}
+            </div>
+        </div>
+    );
+};
+
 const SettingsManager = () => {
     const { toast } = useToast();
     const [migrating, setMigrating] = useState(false);
@@ -513,6 +667,7 @@ const SettingsManager = () => {
     const [twitter, setTwitter] = useState("");
     const [instagram, setInstagram] = useState("");
     const [email, setEmail] = useState("");
+    const [showClients, setShowClients] = useState(true);
     const [isSaving, setIsSaving] = useState(false);
 
     useEffect(() => {
@@ -527,6 +682,7 @@ const SettingsManager = () => {
                 if (s.key === "twitter_link") setTwitter(s.value);
                 if (s.key === "instagram_link") setInstagram(s.value);
                 if (s.key === "email_address") setEmail(s.value);
+                if (s.key === "show_clients_section") setShowClients(s.value === "true");
             });
         }
     };
@@ -537,7 +693,8 @@ const SettingsManager = () => {
             { key: "discord_link", value: discord },
             { key: "twitter_link", value: twitter },
             { key: "instagram_link", value: instagram },
-            { key: "email_address", value: email }
+            { key: "email_address", value: email },
+            { key: "show_clients_section", value: showClients.toString() }
         ];
 
         const { error } = await supabase.from("settings").upsert(updates);
@@ -592,6 +749,26 @@ const SettingsManager = () => {
                             {migrating ? <Loader2 className="animate-spin" /> : "Initiate One-Click Migration"}
                             <ArrowRight size={14} className="ml-2 group-hover:translate-x-1 transition-transform" />
                         </Button>
+                    </div>
+                </div>
+
+                <div className="pt-8 border-t border-white/5 space-y-8">
+                    <div>
+                        <h3 className="text-xl font-display uppercase tracking-widest mb-1">Feature Visibility</h3>
+                        <p className="text-[10px] text-muted-foreground uppercase tracking-widest">Control which sections are visible on specific terminals</p>
+                    </div>
+                    
+                    <div className="flex items-center justify-between p-6 rounded-2xl bg-white/5 border border-white/5">
+                        <div className="space-y-1">
+                            <h4 className="font-bold text-foreground">Giant Marquee (Social Proof)</h4>
+                            <p className="text-[10px] text-muted-foreground uppercase tracking-widest">Trusted by Giants Section</p>
+                        </div>
+                        <button 
+                            onClick={() => setShowClients(!showClients)}
+                            className={`w-14 h-7 rounded-full transition-all relative ${showClients ? 'bg-primary' : 'bg-white/10'}`}
+                        >
+                            <div className={`absolute top-1 w-5 h-5 rounded-full bg-white transition-all ${showClients ? 'left-8 shadow-[0_0_10px_rgba(0,0,0,0.3)]' : 'left-1'}`} />
+                        </button>
                     </div>
                 </div>
 
