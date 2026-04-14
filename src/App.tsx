@@ -42,7 +42,7 @@ const App = () => (
     <TooltipProvider>
       <Toaster />
       <Sonner />
-      <BrowserRouter>
+      <BrowserRouter basename="/jwane-designs-cms">
         <Routes>
           <Route path="/" element={<Index />} />
           
