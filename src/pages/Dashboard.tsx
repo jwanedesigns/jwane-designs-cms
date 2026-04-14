@@ -16,7 +16,8 @@ import {
   Globe,
   Twitter,
   Instagram,
-  Mail
+  Mail,
+  MessageCircle
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -156,8 +157,17 @@ const PortfolioManager = () => {
   useEffect(() => { fetchItems(); }, []);
 
   const fetchItems = async () => {
-    const { data } = await supabase.from("portfolio_items").select("*").order("created_at", { ascending: false });
-    setItems(data || []);
+    const { data, error } = await supabase
+        .from("thumbnails")
+        .select("*")
+        .order("display_order", { ascending: true });
+    
+    if (error) {
+        console.error("Portfolio Fetch Error:", error);
+        toast({ variant: "destructive", title: "Fetch Failed", description: error.message });
+    } else {
+        setItems(data || []);
+    }
     setLoading(false);
   };
 
@@ -209,11 +219,12 @@ const PortfolioManager = () => {
       genre,
       views: showViews ? views : null,
       image_url: imageUrl,
+      display_order: editingItem?.display_order || (items.length + 1)
     };
 
     const { error } = editingItem 
-      ? await supabase.from("portfolio_items").update(payload).eq("id", editingItem.id)
-      : await supabase.from("portfolio_items").insert([payload]);
+      ? await supabase.from("thumbnails").update(payload).eq("id", editingItem.id)
+      : await supabase.from("thumbnails").insert([payload]);
 
     if (error) {
       toast({ variant: "destructive", title: "Save Failed", description: error.message });
@@ -227,8 +238,9 @@ const PortfolioManager = () => {
 
   const handleDelete = async (id: string) => {
     if (!confirm("Are you sure? This action is irreversible.")) return;
-    await supabase.from("portfolio_items").delete().eq("id", id);
-    fetchItems();
+    const { error } = await supabase.from("thumbnails").delete().eq("id", id);
+    if (error) toast({ variant: "destructive", title: "Delete Failed", description: error.message });
+    else fetchItems();
   };
 
   return (
@@ -341,8 +353,13 @@ const TestimonialsManager = () => {
     useEffect(() => { fetchItems(); }, []);
 
     const fetchItems = async () => {
-        const { data } = await supabase.from("testimonials").select("*").order("created_at", { ascending: false });
-        setItems(data || []);
+        const { data, error } = await supabase.from("testimonials").select("*").order("created_at", { ascending: true });
+        if (error) {
+            console.error("Testimonials Fetch Error:", error);
+            toast({ variant: "destructive", title: "Fetch Failed", description: error.message });
+        } else {
+            setItems(data || []);
+        }
         setLoading(false);
     };
 
@@ -384,8 +401,9 @@ const TestimonialsManager = () => {
 
     const handleDelete = async (id: string) => {
         if (!confirm("Are you sure? This action is irreversible.")) return;
-        await supabase.from("testimonials").delete().eq("id", id);
-        fetchItems();
+        const { error } = await supabase.from("testimonials").delete().eq("id", id);
+        if (error) toast({ variant: "destructive", title: "Delete Failed" });
+        else fetchItems();
     };
 
     return (
@@ -449,8 +467,6 @@ const TestimonialsManager = () => {
                         </div>
                     </div>
                 ))}
-                {!loading && items.length === 0 && <p className="text-muted-foreground text-sm">No creators in roster.</p>}
-                {loading && <p className="text-muted-foreground text-sm animate-pulse">Scanning database...</p>}
             </div>
         </div>
     );
@@ -472,9 +488,13 @@ const ClientsManager = () => {
     useEffect(() => { fetchItems(); }, []);
 
     const fetchItems = async () => {
-        const { data, error } = await supabase.from("clients").select("*").order("created_at", { ascending: false });
-        if (error) toast({ variant: "destructive", title: "Fetch Failed" });
-        else setItems(data || []);
+        const { data, error } = await supabase.from("clients").select("*").order("created_at", { ascending: true });
+        if (error) {
+            console.error("Clients Fetch Error:", error);
+            toast({ variant: "destructive", title: "Fetch Failed" });
+        } else {
+            setItems(data || []);
+        }
         setLoading(false);
     };
 
@@ -535,8 +555,9 @@ const ClientsManager = () => {
 
     const handleDelete = async (id: string) => {
         if (!confirm("Are you sure? This giant will be removed from the marquee.")) return;
-        await supabase.from("clients").delete().eq("id", id);
-        fetchItems();
+        const { error } = await supabase.from("clients").delete().eq("id", id);
+        if (error) toast({ variant: "destructive", title: "Delete Failed" });
+        else fetchItems();
     };
 
     return (
@@ -604,7 +625,8 @@ const SettingsManager = () => {
     const [loading, setLoading] = useState(true);
     const { toast } = useToast();
 
-    // Specific states for easier handling
+    // Specific states for easier handling (Mapped to footer.tsx)
+    const [discord, setDiscord] = useState("");
     const [twitter, setTwitter] = useState("");
     const [instagram, setInstagram] = useState("");
     const [email, setEmail] = useState("");
@@ -613,13 +635,17 @@ const SettingsManager = () => {
     useEffect(() => { fetchSettings(); }, []);
 
     const fetchSettings = async () => {
-        const { data } = await supabase.from("settings").select("*");
+        const { data, error } = await supabase.from("settings").select("*");
+        if (error) {
+            console.error("Settings Fetch Error:", error);
+        }
         if (data) {
             setSettings(data);
             const getVal = (key: string) => data.find(s => s.key === key)?.value || "";
-            setTwitter(getVal("twitter_url"));
-            setInstagram(getVal("instagram_url"));
-            setEmail(getVal("contact_email"));
+            setDiscord(getVal("discord_link"));
+            setTwitter(getVal("twitter_link"));
+            setInstagram(getVal("instagram_link"));
+            setEmail(getVal("email_address"));
         }
         setLoading(false);
     };
@@ -631,6 +657,7 @@ const SettingsManager = () => {
             toast({ variant: "destructive", title: "Update Failed", description: error.message });
         } else {
             toast({ title: "Updated", description: `${key} successfully saved.` });
+            fetchSettings();
         }
         setIsUpdating(false);
     };
@@ -638,7 +665,6 @@ const SettingsManager = () => {
     const toggleSection = async (key: string, currentVal: string) => {
         const newVal = currentVal === "true" ? "false" : "true";
         await handleUpdate(key, newVal);
-        fetchSettings();
     };
 
     if (loading) return <div className="text-muted-foreground animate-pulse text-sm">Deciphering configuration...</div>;
@@ -677,8 +703,20 @@ const SettingsManager = () => {
                     <div className="grid gap-6">
                         <div className="space-y-3">
                              <div className="flex justify-between items-center px-1">
+                                <label className="text-[10px] uppercase font-black text-primary tracking-widest">Discord Profile</label>
+                                <button onClick={() => handleUpdate("discord_link", discord)} className="text-[10px] font-bold text-muted-foreground hover:text-primary uppercase tracking-widest transition-colors"><Save size={12} className="inline mr-1" /> Save</button>
+                             </div>
+                             <Input 
+                                value={discord} 
+                                onChange={(e) => setDiscord(e.target.value)} 
+                                placeholder="https://discord.gg/..." 
+                                className="bg-black/40 border-white/10 h-14 rounded-2xl focus:border-primary/50 transition-all font-mono text-xs" 
+                             />
+                        </div>
+                        <div className="space-y-3">
+                             <div className="flex justify-between items-center px-1">
                                 <label className="text-[10px] uppercase font-black text-primary tracking-widest">Twitter / X URL</label>
-                                <button onClick={() => handleUpdate("twitter_url", twitter)} className="text-[10px] font-bold text-muted-foreground hover:text-primary uppercase tracking-widest transition-colors"><Save size={12} className="inline mr-1" /> Save</button>
+                                <button onClick={() => handleUpdate("twitter_link", twitter)} className="text-[10px] font-bold text-muted-foreground hover:text-primary uppercase tracking-widest transition-colors"><Save size={12} className="inline mr-1" /> Save</button>
                              </div>
                              <Input 
                                 value={twitter} 
@@ -690,7 +728,7 @@ const SettingsManager = () => {
                         <div className="space-y-3">
                              <div className="flex justify-between items-center px-1">
                                 <label className="text-[10px] uppercase font-black text-primary tracking-widest">Instagram Profile</label>
-                                <button onClick={() => handleUpdate("instagram_url", instagram)} className="text-[10px] font-bold text-muted-foreground hover:text-primary uppercase tracking-widest transition-colors"><Save size={12} className="inline mr-1" /> Save</button>
+                                <button onClick={() => handleUpdate("instagram_link", instagram)} className="text-[10px] font-bold text-muted-foreground hover:text-primary uppercase tracking-widest transition-colors"><Save size={12} className="inline mr-1" /> Save</button>
                              </div>
                              <Input 
                                 value={instagram} 
@@ -702,7 +740,7 @@ const SettingsManager = () => {
                         <div className="space-y-3">
                              <div className="flex justify-between items-center px-1">
                                 <label className="text-[10px] uppercase font-black text-primary tracking-widest">Public Email Address</label>
-                                <button onClick={() => handleUpdate("contact_email", email)} className="text-[10px] font-bold text-muted-foreground hover:text-primary uppercase tracking-widest transition-colors"><Save size={12} className="inline mr-1" /> Save</button>
+                                <button onClick={() => handleUpdate("email_address", email)} className="text-[10px] font-bold text-muted-foreground hover:text-primary uppercase tracking-widest transition-colors"><Save size={12} className="inline mr-1" /> Save</button>
                              </div>
                              <Input 
                                 value={email} 
