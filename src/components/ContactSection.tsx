@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import SectionHeading from "./SectionHeading";
-import { MessageCircle, Twitter, Mail } from "lucide-react";
+import { MessageCircle, Twitter, Mail, Instagram } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 
 const ContactSection = () => {
@@ -45,7 +45,7 @@ const ContactSection = () => {
           className="glass-card rounded-2xl p-8 sm:p-12 text-center glow-border"
         >
 
-          <div className="flex flex-col sm:flex-row gap-4 justify-center mb-8">
+          <div className="flex flex-wrap gap-4 justify-center mb-8">
             <motion.a
               href={links.discord}
               target="_blank"
@@ -65,6 +65,16 @@ const ContactSection = () => {
               className="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-lg border border-border text-foreground font-body font-semibold text-sm hover:border-primary/40 transition-colors"
             >
               <Twitter size={16} /> Twitter / X
+            </motion.a>
+            <motion.a
+              href={links.instagram}
+              target="_blank"
+              rel="noopener noreferrer"
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.97 }}
+              className="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-lg border border-border text-foreground font-body font-semibold text-sm hover:border-primary/40 transition-colors"
+            >
+              <Instagram size={16} /> Instagram
             </motion.a>
             <motion.a
               href={`mailto:${links.email}`}
