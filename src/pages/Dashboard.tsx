@@ -1,22 +1,23 @@
 import { useState, useEffect } from "react";
-import { motion, AnimatePresence } from "framer-motion";
 import { 
-  ImageIcon, 
-  Users, 
-  Settings, 
   Plus, 
-  LogOut, 
-  Save, 
   Trash2, 
-  X,
-  Upload,
+  Pencil, 
+  LogOut, 
+  ExternalLink, 
+  Image as ImageIcon, 
+  Users, 
+  Database,
+  Settings as SettingsIcon,
   Loader2,
   CheckCircle2,
-  Database,
   ArrowRight,
-  Pencil
+  Save,
+  Globe,
+  Twitter,
+  Instagram,
+  Mail
 } from "lucide-react";
-import { supabase } from "@/lib/supabase";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/components/ui/use-toast";
@@ -25,7 +26,6 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from "@/components/ui/dialog";
 import {
   Select,
@@ -34,111 +34,69 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { supabase } from "@/lib/supabase";
 
 type Tab = "portfolio" | "testimonials" | "clients" | "settings";
 
-const GENRES = ["Gaming", "Vlog", "Horror", "Sports", "Other"];
-
-// Legacy Data for Migration
-const LEGACY_THUMBNAILS = [
-  { genre: "Gaming", title: "Victory Royale", views: "1.2M", image_url: "/assets/1.png" },
-  { genre: "Gaming", title: "Speedrun King", views: "890K", image_url: "/assets/2.png" },
-  { genre: "Gaming", title: "Hidden Secrets", views: "2.1M", image_url: "/assets/3.png" },
-  { genre: "Gaming", title: "Pro Strategy", views: "3.5M", image_url: "/assets/4.png" },
-  { genre: "Vlog", title: "Adventure Awaits", views: "750K", image_url: "/assets/5.png" },
-  { genre: "Vlog", title: "City Lights", views: "1.8M", image_url: "/assets/6.png" },
-  { genre: "Horror", title: "Nightmare Fuel", views: "4.2M", image_url: "/assets/7.png" },
-  { genre: "Horror", title: "Don't Look Back", views: "2.7M", image_url: "/assets/8.png" },
-  { genre: "Sports", title: "Game Winner", views: "1.1M", image_url: "/assets/9.png" },
-  { genre: "Sports", title: "Final Buzzer", views: "920K", image_url: "/assets/10.png" },
-  { genre: "Vlog", title: "Morning Routine", views: "1.5M", image_url: "/assets/11.png" },
-  { genre: "Vlog", title: "Travel Diary", views: "2.3M", image_url: "/assets/12.png" },
-  { genre: "Horror", title: "The Basement", views: "3.1M", image_url: "/assets/13.png" },
-  { genre: "Horror", title: "Midnight Walk", views: "880K", image_url: "/assets/14.png" },
-  { genre: "Gaming", title: "Epic Clutch", views: "1.9M", image_url: "/assets/15.png" },
-  { genre: "Gaming", title: "Pro Loadout", views: "2.5M", image_url: "/assets/16.png" },
-  { genre: "Vlog", title: "Life Update", views: "1.3M", image_url: "/assets/17.png" },
-  { genre: "Vlog", title: "Q&A Session", views: "980K", image_url: "/assets/18.png" },
-  { genre: "Horror", title: "Evil Returns", views: "4.7M", image_url: "/assets/19.png" },
-];
-
-const LEGACY_TESTIMONIALS = [
-  { quote: "Jwane completely transformed my channel's look. CTR went up 40%.", name: "Creator One", size: "2.5M subscribers" },
-  { quote: "The best thumbnail designer. Fast turnaround, insane quality.", name: "Creator Two", size: "1.8M subscribers" },
-  { quote: "Every thumbnail feels like a movie poster.", name: "Creator Three", size: "950K subscribers" },
-];
+const GENRES = ["Gaming", "Vlog", "Horror", "Sports", "Challenge", "Business"];
 
 const Dashboard = () => {
   const [activeTab, setActiveTab] = useState<Tab>("portfolio");
-  const [loading, setLoading] = useState(true);
   const { toast } = useToast();
-
-  useEffect(() => {
-    const checkUser = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      setLoading(false);
-      if (!user) {
-         window.location.href = "/muhee/login";
-      }
-    };
-    checkUser();
-  }, []);
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
-    window.location.href = "/muhee/login";
+    window.location.href = "/login";
   };
-
-  if (loading) return (
-    <div className="min-h-screen bg-background flex items-center justify-center">
-      <div className="w-8 h-8 border-4 border-primary/30 border-t-primary rounded-full animate-spin" />
-    </div>
-  );
 
   return (
     <div className="min-h-screen bg-[#050505] text-foreground flex overflow-hidden">
       {/* Sidebar */}
-      <aside className="w-64 border-r border-white/5 bg-black/40 backdrop-blur-xl flex flex-col p-6 z-20">
-        <div className="flex items-center gap-3 mb-10 px-2 cursor-pointer" onClick={() => window.location.href = "/"}>
-          <div className="w-8 h-8 rounded-lg bg-primary/20 border border-primary/30 flex items-center justify-center">
-             <div className="w-2 h-2 rounded-full bg-primary shadow-[0_0_10px_rgba(0,245,255,1)]" />
+      <aside className="w-64 border-r border-white/5 bg-[#0a0a0a]/50 backdrop-blur-xl flex flex-col z-20">
+        <div className="p-8">
+          <div className="flex items-center gap-3 mb-10 px-2 cursor-pointer" onClick={() => window.location.href = "/"}>
+            <div className="w-8 h-8 rounded-lg bg-primary/20 border border-primary/30 flex items-center justify-center">
+               <div className="w-2 h-2 rounded-full bg-primary shadow-[0_0_10px_rgba(0,245,255,1)]" />
+            </div>
+            <span className="font-display text-lg tracking-widest uppercase">Muhee Admin</span>
           </div>
-          <span className="font-display text-lg tracking-widest uppercase">Muhee Admin</span>
+
+          <nav className="space-y-2">
+            <NavItem 
+              active={activeTab === "portfolio"} 
+              onClick={() => setActiveTab("portfolio")}
+              icon={<ImageIcon size={18} />}
+              label="Portfolio"
+            />
+            <NavItem 
+              active={activeTab === "testimonials"} 
+              onClick={() => setActiveTab("testimonials")}
+              icon={<Users size={18} />}
+              label="Testimonials"
+            />
+            <NavItem 
+              active={activeTab === "clients"} 
+              onClick={() => setActiveTab("clients")}
+              icon={<Database size={18} />}
+              label="Clients"
+            />
+            <NavItem 
+              active={activeTab === "settings"} 
+              onClick={() => setActiveTab("settings")}
+              icon={<SettingsIcon size={18} />}
+              label="Settings"
+            />
+          </nav>
         </div>
 
-        <nav className="space-y-2 flex-1">
-          <NavItem 
-            active={activeTab === "portfolio"} 
-            onClick={() => setActiveTab("portfolio")}
-            icon={<ImageIcon size={18} />}
-            label="Portfolio"
-          />
-          <NavItem 
-            active={activeTab === "testimonials"} 
-            onClick={() => setActiveTab("testimonials")}
-            icon={<Users size={18} />}
-            label="Testimonials"
-          />
-          <NavItem 
-            active={activeTab === "clients"} 
-            onClick={() => setActiveTab("clients")}
-            icon={<Database size={18} />}
-            label="Clients"
-          />
-          <NavItem 
-            active={activeTab === "settings"} 
-            onClick={() => setActiveTab("settings")}
-            icon={<Settings size={18} />}
-            label="Settings"
-          />
-        </nav>
-
-        <button 
-          onClick={handleLogout}
-          className="mt-auto flex items-center gap-3 px-4 py-3 rounded-xl text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-all text-xs font-bold uppercase tracking-widest"
-        >
-          <LogOut size={16} /> Logout
-        </button>
+        <div className="mt-auto p-8 border-t border-white/5">
+          <button 
+            onClick={handleLogout}
+            className="flex items-center gap-3 text-muted-foreground hover:text-destructive transition-colors text-xs font-bold uppercase tracking-widest px-2"
+          >
+            <LogOut size={18} /> Logout
+          </button>
+        </div>
       </aside>
 
       {/* Main Content */}
@@ -147,28 +105,22 @@ const Dashboard = () => {
           <h2 className="text-3xl font-display uppercase tracking-widest text-foreground">
             {activeTab === "testimonials" ? "Testimonials" : activeTab} <span className="text-primary/50 text-sm">/ Control Center</span>
           </h2>
-          <div className="flex gap-4">
-             <Button 
-                onClick={() => window.location.href = "/"}
-                variant="outline" 
-                className="border-white/10 text-xs font-black uppercase tracking-widest rounded-full opacity-60 hover:opacity-100"
-             >
-                View Live Site
-             </Button>
-          </div>
+          <Button 
+            variant="outline" 
+            className="border-white/10 hover:bg-white/5 text-xs font-bold uppercase tracking-widest rounded-full h-10 px-6 gap-2"
+            onClick={() => window.open("/", "_blank")}
+          >
+            <ExternalLink size={14} /> View Live Site
+          </Button>
         </header>
 
-        <div className="p-8">
-          <AnimatePresence mode="wait">
-            {activeTab === "portfolio" && <PortfolioManager key="portfolio" />}
-            {activeTab === "testimonials" && <TestimonialsManager key="testimonials" />}
-            {activeTab === "clients" && <ClientsManager key="clients" />}
-            {activeTab === "settings" && <SettingsManager key="settings" />}
-          </AnimatePresence>
+        <div className="p-10 max-w-6xl">
+          {activeTab === "portfolio" && <PortfolioManager />}
+          {activeTab === "testimonials" && <TestimonialsManager />}
+          {activeTab === "clients" && <ClientsManager />}
+          {activeTab === "settings" && <SettingsManager />}
         </div>
       </main>
-
-      <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-primary/5 blur-[120px] rounded-full pointer-events-none z-0" />
     </div>
   );
 };
@@ -186,6 +138,7 @@ const NavItem = ({ active, onClick, icon, label }: any) => (
   </button>
 );
 
+/* --- PORFOLIO MANAGER --- */
 const PortfolioManager = () => {
   const [items, setItems] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -194,74 +147,18 @@ const PortfolioManager = () => {
   const { toast } = useToast();
 
   const [title, setTitle] = useState("");
-  const [genre, setGenre] = useState("Gaming");
+  const [genre, setGenre] = useState("");
   const [views, setViews] = useState("");
   const [showViews, setShowViews] = useState(true);
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [isSaving, setIsSaving] = useState(false);
 
-  useEffect(() => {
-    fetchItems();
-  }, []);
+  useEffect(() => { fetchItems(); }, []);
 
   const fetchItems = async () => {
-    const { data, error } = await supabase
-      .from("thumbnails")
-      .select("*")
-      .order("created_at", { ascending: false });
-    
-    if (error) {
-      toast({ variant: "destructive", title: "Error fetching", description: error.message });
-    } else {
-      setItems(data || []);
-    }
+    const { data } = await supabase.from("portfolio_items").select("*").order("created_at", { ascending: false });
+    setItems(data || []);
     setLoading(false);
-  };
-
-  const handleSave = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsSaving(true);
-
-    let imageUrl = editingItem?.image_url || "";
-
-    if (imageFile) {
-        const fileExt = imageFile.name.split('.').pop();
-        const fileName = `${Math.random()}.${fileExt}`;
-        const { data, error: uploadError } = await supabase.storage
-            .from('thumbnails')
-            .upload(fileName, imageFile);
-
-        if (uploadError) {
-            toast({ variant: "destructive", title: "Upload Failed", description: uploadError.message });
-            setIsSaving(false);
-            return;
-        }
-        
-        const { data: { publicUrl } } = supabase.storage
-            .from('thumbnails')
-            .getPublicUrl(fileName);
-        
-        imageUrl = publicUrl;
-    }
-
-    const payload = { 
-        title, 
-        genre, 
-        views: showViews ? views : "", 
-        image_url: imageUrl 
-    };
-
-    const { error } = editingItem 
-        ? await supabase.from("thumbnails").update(payload).eq("id", editingItem.id)
-        : await supabase.from("thumbnails").insert([payload]);
-
-    if (error) toast({ variant: "destructive", title: "Save Failed" });
-    else {
-        toast({ title: "Success", description: "Asset updated." });
-        setIsModalOpen(false);
-        fetchItems();
-    }
-    setIsSaving(false);
   };
 
   const handleEdit = (item: any) => {
@@ -277,23 +174,70 @@ const PortfolioManager = () => {
   const openNewModal = () => {
     setEditingItem(null);
     setTitle("");
-    setGenre("Gaming");
+    setGenre(GENRES[0]);
     setViews("");
     setShowViews(true);
     setImageFile(null);
     setIsModalOpen(true);
   };
 
+  const handleSave = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsSaving(true);
+
+    let imageUrl = editingItem?.image_url || "";
+
+    if (imageFile) {
+      const fileExt = imageFile.name.split('.').pop();
+      const fileName = `${Math.random()}.${fileExt}`;
+      const { error: uploadError } = await supabase.storage
+        .from('portfolio')
+        .upload(fileName, imageFile);
+
+      if (uploadError) {
+        toast({ variant: "destructive", title: "Upload Failed", description: uploadError.message });
+        setIsSaving(false);
+        return;
+      }
+      
+      const { data: { publicUrl } } = supabase.storage.from('portfolio').getPublicUrl(fileName);
+      imageUrl = publicUrl;
+    }
+
+    const payload = {
+      title,
+      genre,
+      views: showViews ? views : null,
+      image_url: imageUrl,
+    };
+
+    const { error } = editingItem 
+      ? await supabase.from("portfolio_items").update(payload).eq("id", editingItem.id)
+      : await supabase.from("portfolio_items").insert([payload]);
+
+    if (error) {
+      toast({ variant: "destructive", title: "Save Failed", description: error.message });
+    } else {
+      toast({ title: "Success", description: editingItem ? "Asset updated." : "New asset launched." });
+      setIsModalOpen(false);
+      fetchItems();
+    }
+    setIsSaving(false);
+  };
+
   const handleDelete = async (id: string) => {
-    if (!confirm("Are you sure?")) return;
-    await supabase.from("thumbnails").delete().eq("id", id);
+    if (!confirm("Are you sure? This action is irreversible.")) return;
+    await supabase.from("portfolio_items").delete().eq("id", id);
     fetchItems();
   };
 
   return (
     <div className="space-y-8">
-      <div className="flex justify-between items-center">
-          <h3 className="text-xl font-display uppercase tracking-widest text-primary/80">Active Assets</h3>
+      <div className="flex justify-between items-end">
+          <div>
+              <h3 className="text-xl font-display uppercase tracking-widest text-primary/80">Active Assets</h3>
+              <p className="text-muted-foreground text-xs mt-1">Manage thumbnails currently live on the edge.</p>
+          </div>
           <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
               <Button 
                 onClick={openNewModal}
@@ -381,6 +325,7 @@ const PortfolioManager = () => {
   );
 };
 
+/* --- TESTIMONIALS MANAGER --- */
 const TestimonialsManager = () => {
     const [items, setItems] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
@@ -511,6 +456,7 @@ const TestimonialsManager = () => {
     );
 };
 
+/* --- CLIENTS MANAGER --- */
 const ClientsManager = () => {
     const [items, setItems] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
@@ -602,54 +548,48 @@ const ClientsManager = () => {
                         onClick={openNewModal}
                         className="bg-primary text-black font-black uppercase tracking-widest text-[10px] h-11 px-8 rounded-full shadow-[0_0_20px_rgba(0,245,255,0.3)]"
                     >
-                        <Plus size={16} className="mr-2" /> Add New Giant
+                        <Plus size={16} className="mr-2" /> Launch New Giant
                     </Button>
                     <DialogContent className="glass-card border-white/10 bg-[#0a0a0a]/95 text-foreground">
                         <DialogHeader>
-                            <DialogTitle className="font-display uppercase tracking-widest">Giant Parameters</DialogTitle>
+                            <DialogTitle className="font-display uppercase tracking-widest">Giant Specification</DialogTitle>
                         </DialogHeader>
                         <form onSubmit={handleSave} className="space-y-6 pt-4">
                             <Input value={name} onChange={(e) => setName(e.target.value)} placeholder="Creator Name" required className="bg-black/40 border-white/10" />
-                            <Input value={subCount} onChange={(e) => setSubCount(e.target.value)} placeholder="Sub Count (e.g. 111M)" required className="bg-black/40 border-white/10" />
+                            <Input value={subCount} onChange={(e) => setSubCount(e.target.value)} placeholder="Display Subscriber Count (e.g. 10Mandatory)" required className="bg-black/40 border-white/10" />
                             <div className="space-y-2">
-                                <label className="text-[10px] uppercase font-black text-primary tracking-widest px-1">Avatar / Logo</label>
-                                <Input type="file" onChange={(e) => setImageFile(e.target.files?.[0] || null)} className="bg-black/40 border-white/10 file:text-primary file:font-bold file:uppercase file:text-[10px]" />
+                                <label className="text-[10px] uppercase font-bold text-muted-foreground tracking-widest">Avatar Image (Optional)</label>
+                                <Input type="file" onChange={(e) => setImageFile(e.target.files?.[0] || null)} className="bg-black/40 border-white/10" />
                             </div>
                             <Button type="submit" disabled={isSaving} className="w-full bg-primary text-black font-black uppercase tracking-widest">
-                                {isSaving ? "Syncing..." : "Commit to Marquee"}
+                                {isSaving ? "Syncing..." : "Commit To Marquee"}
                             </Button>
                         </form>
                     </DialogContent>
                 </Dialog>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                {items.map(t => (
-                    <div key={t.id} className="glass-card rounded-2xl p-6 border-white/5 space-y-4 hover:border-primary/20 transition-all group flex flex-col items-center">
-                        <div className="w-16 h-16 rounded-full overflow-hidden border border-white/10 relative">
-                            {t.avatar_url ? (
-                                <img src={t.avatar_url} alt={t.name} className="w-full h-full object-cover" />
-                            ) : (
-                                <div className="w-full h-full bg-primary/5 flex items-center justify-center text-[8px] uppercase font-bold text-primary/40">No Avatar</div>
-                            )}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {items.map(c => (
+                    <div key={c.id} className="glass-card rounded-2xl p-6 border-white/5 flex items-center justify-between group">
+                        <div className="flex items-center gap-4">
+                            <div className="w-12 h-12 rounded-full overflow-hidden bg-black/40 border border-white/10">
+                                {c.avatar_url ? (
+                                    <img src={c.avatar_url} alt={name} className="w-full h-full object-cover" />
+                                ) : (
+                                    <div className="w-full h-full flex items-center justify-center text-primary/20 bg-primary/5">
+                                        <Users size={20} />
+                                    </div>
+                                )}
+                            </div>
+                            <div>
+                                <h5 className="font-bold text-foreground text-sm">{c.name}</h5>
+                                <p className="text-[10px] uppercase tracking-widest text-primary/60">{c.sub_count}</p>
+                            </div>
                         </div>
-                        <div className="text-center">
-                            <h5 className="font-bold text-foreground">{t.name}</h5>
-                            <p className="text-[10px] uppercase tracking-widest text-primary">{t.sub_count} subs</p>
-                        </div>
-                        <div className="flex gap-2 opacity-30 group-hover:opacity-100 transition-opacity">
-                            <button 
-                                onClick={() => handleEdit(t)} 
-                                className="p-2 text-muted-foreground hover:text-primary transition-colors"
-                            >
-                                <Pencil size={16} />
-                            </button>
-                            <button 
-                                onClick={() => handleDelete(t.id)} 
-                                className="p-2 text-muted-foreground hover:text-destructive transition-colors"
-                            >
-                                <Trash2 size={16} />
-                            </button>
+                        <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                            <button onClick={() => handleEdit(c)} className="p-2 text-muted-foreground hover:text-primary"><Pencil size={14} /></button>
+                            <button onClick={() => handleDelete(c.id)} className="p-2 text-muted-foreground hover:text-destructive"><Trash2 size={14} /></button>
                         </div>
                     </div>
                 ))}
@@ -658,148 +598,88 @@ const ClientsManager = () => {
     );
 };
 
+/* --- SETTINGS MANAGER --- */
 const SettingsManager = () => {
+    const [settings, setSettings] = useState<any[]>([]);
+    const [loading, setLoading] = useState(true);
     const { toast } = useToast();
-    const [migrating, setMigrating] = useState(false);
-    
-    // Socials State
-    const [discord, setDiscord] = useState("");
+
+    // Specific states for easier handling
     const [twitter, setTwitter] = useState("");
     const [instagram, setInstagram] = useState("");
     const [email, setEmail] = useState("");
-    const [showClients, setShowClients] = useState(true);
-    const [isSaving, setIsSaving] = useState(false);
+    const [isUpdating, setIsUpdating] = useState(false);
 
-    useEffect(() => {
-        fetchSettings();
-    }, []);
+    useEffect(() => { fetchSettings(); }, []);
 
     const fetchSettings = async () => {
         const { data } = await supabase.from("settings").select("*");
         if (data) {
-            data.forEach(s => {
-                if (s.key === "discord_link") setDiscord(s.value);
-                if (s.key === "twitter_link") setTwitter(s.value);
-                if (s.key === "instagram_link") setInstagram(s.value);
-                if (s.key === "email_address") setEmail(s.value);
-                if (s.key === "show_clients_section") setShowClients(s.value === "true");
-            });
+            setSettings(data);
+            const getVal = (key: string) => data.find(s => s.key === key)?.value || "";
+            setTwitter(getVal("twitter_url"));
+            setInstagram(getVal("instagram_url"));
+            setEmail(getVal("contact_email"));
         }
+        setLoading(false);
     };
 
-    const handleSaveSocials = async () => {
-        setIsSaving(true);
-        const updates = [
-            { key: "discord_link", value: discord },
-            { key: "twitter_link", value: twitter },
-            { key: "instagram_link", value: instagram },
-            { key: "email_address", value: email },
-            { key: "show_clients_section", value: showClients.toString() }
-        ];
-
-        const { error } = await supabase.from("settings").upsert(updates);
-
+    const handleUpdate = async (key: string, value: string) => {
+        setIsUpdating(true);
+        const { error } = await supabase.from("settings").update({ value }).eq("key", key);
         if (error) {
             toast({ variant: "destructive", title: "Update Failed", description: error.message });
         } else {
-            toast({ title: "Success", description: "Brand perimeter secured." });
+            toast({ title: "Updated", description: `${key} successfully saved.` });
         }
-        setIsSaving(false);
+        setIsUpdating(false);
     };
 
-    const runMigration = async () => {
-        if (!confirm("This will upload all 19+ legacy thumbnails and 3 testimonials to your database. Continue?")) return;
-        setMigrating(true);
-        
-        try {
-            // Migrating Thumbnails
-            const { error: tError } = await supabase.from("thumbnails").insert(LEGACY_THUMBNAILS);
-            if (tError) throw tError;
-
-            // Migrating Testimonials
-            const { error: qError } = await supabase.from("testimonials").insert(LEGACY_TESTIMONIALS);
-            if (qError) throw qError;
-
-            toast({ title: "Migration Complete", description: "All legacy data has been synced to the edge." });
-        } catch (e: any) {
-            toast({ variant: "destructive", title: "Migration Failed", description: e.message });
-        }
-        setMigrating(false);
+    const toggleSection = async (key: string, currentVal: string) => {
+        const newVal = currentVal === "true" ? "false" : "true";
+        await handleUpdate(key, newVal);
+        fetchSettings();
     };
+
+    if (loading) return <div className="text-muted-foreground animate-pulse text-sm">Deciphering configuration...</div>;
 
     return (
-        <div className="max-w-4xl space-y-8">
-            <div className="glass-card rounded-3xl p-10 border-white/5 space-y-8">
-                <div>
-                    <h3 className="text-xl font-display uppercase tracking-widest flex items-center gap-3 mb-2">
-                        <Database size={18} className="text-primary" /> Migration Hub
-                    </h3>
-                    <p className="text-muted-foreground text-xs uppercase tracking-widest mb-8">Synchronize legacy hardcoded data with Supabase Cloud</p>
-                    
-                    <div className="bg-primary/5 border border-primary/20 rounded-2xl p-6 flex items-center justify-between">
-                        <div className="space-y-1">
-                            <h4 className="font-bold text-foreground">Legacy Data Sync</h4>
-                            <p className="text-[10px] text-muted-foreground uppercase tracking-widest">19 Thumbnails // 3 Testimonials // Site Brand Settings</p>
-                        </div>
-                        <Button 
-                            onClick={runMigration}
-                            disabled={migrating}
-                            className="bg-primary text-black font-black uppercase text-[10px] tracking-widest px-8 h-12 rounded-xl group"
-                        >
-                            {migrating ? <Loader2 className="animate-spin" /> : "Initiate One-Click Migration"}
-                            <ArrowRight size={14} className="ml-2 group-hover:translate-x-1 transition-transform" />
-                        </Button>
-                    </div>
+        <div className="max-w-2xl space-y-12">
+            <div className="space-y-6">
+                <div className="flex items-center gap-2 mb-2">
+                    <Database size={16} className="text-primary" />
+                    <h3 className="text-lg font-display uppercase tracking-widest">Section Visibility</h3>
                 </div>
-
-                <div className="pt-8 border-t border-white/5 space-y-8">
-                    <div>
-                        <h3 className="text-xl font-display uppercase tracking-widest mb-1">Feature Visibility</h3>
-                        <p className="text-[10px] text-muted-foreground uppercase tracking-widest">Control which sections are visible on specific terminals</p>
-                    </div>
-                    
-                    <div className="flex items-center justify-between p-6 rounded-2xl bg-white/5 border border-white/5">
-                        <div className="space-y-1">
-                            <h4 className="font-bold text-foreground">Giant Marquee (Social Proof)</h4>
-                            <p className="text-[10px] text-muted-foreground uppercase tracking-widest">Trusted by Giants Section</p>
+                <div className="grid gap-4">
+                    {settings.filter(s => s.key.startsWith("show_")).map(s => (
+                        <div key={s.id} className="glass-card p-5 rounded-2xl flex items-center justify-between border-white/5">
+                            <div>
+                                <h4 className="text-sm font-bold capitalize">{s.key.replace("show_", "").replace("_", " ")}</h4>
+                                <p className="text-[10px] text-muted-foreground uppercase tracking-widest mt-1">Live visibility on landing page</p>
+                            </div>
+                            <button 
+                                onClick={() => toggleSection(s.key, s.value)}
+                                className={`w-14 h-7 rounded-full transition-all relative ${s.value === "true" ? 'bg-primary' : 'bg-white/10'}`}
+                            >
+                                <div className={`absolute top-1 w-5 h-5 rounded-full bg-white transition-all ${s.value === "true" ? 'left-8' : 'left-1'}`} />
+                            </button>
                         </div>
-                        <button 
-                            onClick={() => setShowClients(!showClients)}
-                            className={`w-14 h-7 rounded-full transition-all relative ${showClients ? 'bg-primary' : 'bg-white/10'}`}
-                        >
-                            <div className={`absolute top-1 w-5 h-5 rounded-full bg-white transition-all ${showClients ? 'left-8 shadow-[0_0_10px_rgba(0,0,0,0.3)]' : 'left-1'}`} />
-                        </button>
-                    </div>
+                    ))}
                 </div>
+            </div>
 
-                <div className="pt-8 border-t border-white/5 space-y-8">
-                    <div className="flex justify-between items-center">
-                        <div>
-                            <h3 className="text-xl font-display uppercase tracking-widest mb-1">Brand Perimeter</h3>
-                            <p className="text-[10px] text-muted-foreground uppercase tracking-widest">Manage global social links and contact endpoints</p>
-                        </div>
-                        <Button 
-                            onClick={handleSaveSocials} 
-                            disabled={isSaving}
-                            className="bg-primary/10 text-primary border border-primary/20 hover:bg-primary hover:text-black font-black uppercase text-[10px] tracking-widest px-6 h-10 rounded-full transition-all"
-                        >
-                            {isSaving ? <Loader2 className="w-3 h-3 animate-spin mr-2" /> : <Save size={14} className="mr-2" />}
-                            Sync Socials
-                        </Button>
-                    </div>
-
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <div className="space-y-6">
+                <div className="flex items-center gap-2 mb-2">
+                    <Globe size={16} className="text-primary" />
+                    <h3 className="text-lg font-display uppercase tracking-widest">Social & Contact Links</h3>
+                </div>
+                <div className="glass-card p-8 rounded-2xl border-white/5 space-y-8">
+                    <div className="grid gap-6">
                         <div className="space-y-3">
-                             <label className="text-[10px] uppercase font-black text-primary tracking-widest px-1">Discord Invite Link</label>
-                             <Input 
-                                value={discord} 
-                                onChange={(e) => setDiscord(e.target.value)} 
-                                placeholder="https://discord.gg/..." 
-                                className="bg-black/40 border-white/10 h-14 rounded-2xl focus:border-primary/50 transition-all font-mono text-xs" 
-                             />
-                        </div>
-                        <div className="space-y-3">
-                             <label className="text-[10px] uppercase font-black text-primary tracking-widest px-1">Twitter / X URL</label>
+                             <div className="flex justify-between items-center px-1">
+                                <label className="text-[10px] uppercase font-black text-primary tracking-widest">Twitter / X URL</label>
+                                <button onClick={() => handleUpdate("twitter_url", twitter)} className="text-[10px] font-bold text-muted-foreground hover:text-primary uppercase tracking-widest transition-colors"><Save size={12} className="inline mr-1" /> Save</button>
+                             </div>
                              <Input 
                                 value={twitter} 
                                 onChange={(e) => setTwitter(e.target.value)} 
@@ -808,7 +688,10 @@ const SettingsManager = () => {
                              />
                         </div>
                         <div className="space-y-3">
-                             <label className="text-[10px] uppercase font-black text-primary tracking-widest px-1">Instagram Profile</label>
+                             <div className="flex justify-between items-center px-1">
+                                <label className="text-[10px] uppercase font-black text-primary tracking-widest">Instagram Profile</label>
+                                <button onClick={() => handleUpdate("instagram_url", instagram)} className="text-[10px] font-bold text-muted-foreground hover:text-primary uppercase tracking-widest transition-colors"><Save size={12} className="inline mr-1" /> Save</button>
+                             </div>
                              <Input 
                                 value={instagram} 
                                 onChange={(e) => setInstagram(e.target.value)} 
@@ -817,7 +700,10 @@ const SettingsManager = () => {
                              />
                         </div>
                         <div className="space-y-3">
-                             <label className="text-[10px] uppercase font-black text-primary tracking-widest px-1">Public Email Address</label>
+                             <div className="flex justify-between items-center px-1">
+                                <label className="text-[10px] uppercase font-black text-primary tracking-widest">Public Email Address</label>
+                                <button onClick={() => handleUpdate("contact_email", email)} className="text-[10px] font-bold text-muted-foreground hover:text-primary uppercase tracking-widest transition-colors"><Save size={12} className="inline mr-1" /> Save</button>
+                             </div>
                              <Input 
                                 value={email} 
                                 onChange={(e) => setEmail(e.target.value)} 
