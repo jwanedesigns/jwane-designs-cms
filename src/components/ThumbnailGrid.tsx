@@ -1,9 +1,10 @@
 import { motion } from "framer-motion";
+import { getAssetUrl } from "@/lib/assets";
 
 const IMAGES = [
-  "/assets/1.png", "/assets/2.png", "/assets/3.png", "/assets/4.png",
-  "/assets/5.png", "/assets/6.png", "/assets/7.png", "/assets/8.png",
-  "/assets/9.png", "/assets/10.png", "/assets/11.png", "/assets/12.png"
+  "assets/1.png", "assets/2.png", "assets/3.png", "assets/4.png",
+  "assets/5.png", "assets/6.png", "assets/7.png", "assets/8.png",
+  "assets/9.png", "assets/10.png", "assets/11.png", "assets/12.png"
 ];
 
 const ThumbnailRow = ({ direction = "left", speed = 120 }: { direction?: "left" | "right", speed?: number }) => {
@@ -25,7 +26,7 @@ const ThumbnailRow = ({ direction = "left", speed = 120 }: { direction?: "left" 
             className="w-48 h-28 rounded-lg overflow-hidden glass-card flex-shrink-0"
           >
             <img 
-              src={src} 
+              src={getAssetUrl(src)} 
               alt="" 
               className="w-full h-full object-cover opacity-60 cyan-filter" 
               loading="lazy"

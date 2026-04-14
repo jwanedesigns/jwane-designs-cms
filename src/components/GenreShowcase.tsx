@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { ChevronDown, ChevronUp, ImageIcon } from "lucide-react";
 import { Skeleton } from "./ui/skeleton";
 import { supabase } from "@/lib/supabase";
+import { getAssetUrl } from "@/lib/assets";
 
 const genres = ["All", "Gaming", "Vlog", "Horror", "Sports", "Other"];
 
@@ -29,7 +30,7 @@ const ThumbnailCard = ({ t }: { t: any }) => {
         )}
         
         <img 
-          src={t.image_url} 
+          src={getAssetUrl(t.image_url)} 
           alt={t.title} 
           onLoad={() => setIsLoaded(true)}
           className={`w-full h-full object-cover transition-all duration-700 ${
