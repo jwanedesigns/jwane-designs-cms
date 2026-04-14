@@ -13,7 +13,8 @@ import {
   Loader2,
   CheckCircle2,
   Database,
-  ArrowRight
+  ArrowRight,
+  Pencil
 } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { Button } from "@/components/ui/button";
@@ -188,6 +189,7 @@ const PortfolioManager = () => {
   const [title, setTitle] = useState("");
   const [genre, setGenre] = useState("Gaming");
   const [views, setViews] = useState("");
+  const [showViews, setShowViews] = useState(true);
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [isSaving, setIsSaving] = useState(false);
 
@@ -235,7 +237,12 @@ const PortfolioManager = () => {
         imageUrl = publicUrl;
     }
 
-    const payload = { title, genre, views, image_url: imageUrl };
+    const payload = { 
+        title, 
+        genre, 
+        views: showViews ? views : "", 
+        image_url: imageUrl 
+    };
 
     const { error } = editingItem 
         ? await supabase.from("thumbnails").update(payload).eq("id", editingItem.id)
@@ -250,6 +257,26 @@ const PortfolioManager = () => {
     setIsSaving(false);
   };
 
+  const handleEdit = (item: any) => {
+    setEditingItem(item);
+    setTitle(item.title);
+    setGenre(item.genre);
+    setViews(item.views || "");
+    setShowViews(!!item.views);
+    setImageFile(null);
+    setIsModalOpen(true);
+  };
+
+  const openNewModal = () => {
+    setEditingItem(null);
+    setTitle("");
+    setGenre("Gaming");
+    setViews("");
+    setShowViews(true);
+    setImageFile(null);
+    setIsModalOpen(true);
+  };
+
   const handleDelete = async (id: string) => {
     if (!confirm("Are you sure?")) return;
     await supabase.from("thumbnails").delete().eq("id", id);
@@ -261,11 +288,12 @@ const PortfolioManager = () => {
       <div className="flex justify-between items-center">
           <h3 className="text-xl font-display uppercase tracking-widest text-primary/80">Active Assets</h3>
           <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
-              <DialogTrigger asChild>
-                  <Button className="bg-primary text-black font-black uppercase tracking-widest text-[10px] h-11 px-8 rounded-full shadow-[0_0_20px_rgba(0,245,255,0.3)]">
-                      <Plus size={16} className="mr-2" /> Launch New Asset
-                  </Button>
-              </DialogTrigger>
+              <Button 
+                onClick={openNewModal}
+                className="bg-primary text-black font-black uppercase tracking-widest text-[10px] h-11 px-8 rounded-full shadow-[0_0_20px_rgba(0,245,255,0.3)]"
+              >
+                  <Plus size={16} className="mr-2" /> Launch New Asset
+              </Button>
               <DialogContent className="glass-card border-white/10 bg-[#0a0a0a]/95 text-foreground">
                   <DialogHeader>
                       <DialogTitle className="font-display uppercase tracking-widest">Asset Parameters</DialogTitle>
@@ -279,7 +307,26 @@ const PortfolioManager = () => {
                                   {GENRES.map(g => <SelectItem key={g} value={g}>{g}</SelectItem>)}
                               </SelectContent>
                           </Select>
-                          <Input value={views} onChange={(e) => setViews(e.target.value)} placeholder="Views (e.g. 1.2M)" required className="bg-black/40 border-white/10" />
+                          <div className="space-y-4">
+                              <div className="flex items-center space-x-2">
+                                  <input 
+                                    type="checkbox" 
+                                    id="showViews"
+                                    checked={showViews} 
+                                    onChange={(e) => setShowViews(e.target.checked)}
+                                    className="w-4 h-4 rounded border-white/10 bg-black/40 text-primary focus:ring-primary"
+                                  />
+                                  <label htmlFor="showViews" className="text-[10px] uppercase font-black tracking-widest text-muted-foreground cursor-pointer">Display Views</label>
+                              </div>
+                              <Input 
+                                value={views} 
+                                onChange={(e) => setViews(e.target.value)} 
+                                placeholder="e.g. 1.2M" 
+                                disabled={!showViews}
+                                required={showViews}
+                                className={`bg-black/40 border-white/10 transition-opacity ${!showViews ? 'opacity-30' : 'opacity-100'}`} 
+                              />
+                          </div>
                       </div>
                       <Input type="file" onChange={(e) => setImageFile(e.target.files?.[0] || null)} className="bg-black/40 border-white/10 file:text-primary file:font-bold file:uppercase file:text-[10px]" />
                       <Button type="submit" disabled={isSaving} className="w-full bg-primary text-black font-black uppercase tracking-widest">
@@ -295,16 +342,31 @@ const PortfolioManager = () => {
           <div key={item.id} className="glass-card rounded-2xl overflow-hidden group border-white/5 hover:border-primary/30 transition-all">
              <div className="aspect-video relative">
                 <img src={item.image_url} className="w-full h-full object-cover" />
-                <div className="absolute top-4 left-4 bg-black/60 backdrop-blur-md px-3 py-1 rounded-full border border-white/10 text-[10px] uppercase font-bold text-primary">
-                    {item.views} Views
-                </div>
+                {item.views && (
+                    <div className="absolute top-4 left-4 bg-black/60 backdrop-blur-md px-3 py-1 rounded-full border border-white/10 text-[10px] uppercase font-bold text-primary">
+                        {item.views} Views
+                    </div>
+                )}
              </div>
-             <div className="p-5 flex justify-between items-center">
-                <h4 className="font-display text-lg uppercase truncate max-w-[150px]">{item.title}</h4>
-                <div className="flex gap-2">
-                   <button onClick={() => handleDelete(item.id)} className="p-2 text-muted-foreground hover:text-destructive transition-colors"><Trash2 size={16} /></button>
-                </div>
-             </div>
+              <div className="p-5 flex justify-between items-center">
+                 <h4 className="font-display text-lg uppercase truncate max-w-[150px]">{item.title}</h4>
+                 <div className="flex gap-2">
+                    <button 
+                      onClick={() => handleEdit(item)} 
+                      className="p-2 text-muted-foreground hover:text-primary transition-colors"
+                      aria-label="Edit asset"
+                    >
+                      <Pencil size={16} />
+                    </button>
+                    <button 
+                      onClick={() => handleDelete(item.id)} 
+                      className="p-2 text-muted-foreground hover:text-destructive transition-colors"
+                      aria-label="Delete asset"
+                    >
+                      <Trash2 size={16} />
+                    </button>
+                 </div>
+              </div>
           </div>
         ))}
       </div>

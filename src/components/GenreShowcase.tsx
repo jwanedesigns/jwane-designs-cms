@@ -40,15 +40,16 @@ const ThumbnailCard = ({ t }: { t: any }) => {
           decoding="async"
         />
         
-        {/* Views Badge - Top Left */}
-        <div className="absolute top-4 left-4 z-20">
-          <div className="bg-black/40 backdrop-blur-xl border border-white/10 px-3.5 py-1.5 rounded-full flex items-center gap-2 shadow-2xl">
-            <div className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse shadow-[0_0_8px_rgba(0,245,255,0.8)]" />
-            <span className="text-white font-body text-[10px] font-bold tracking-widest uppercase">
-              {t.views} views
-            </span>
+        {t.views && (
+          <div className="absolute top-4 left-4 z-20">
+            <div className="bg-black/40 backdrop-blur-xl border border-white/10 px-3.5 py-1.5 rounded-full flex items-center gap-2 shadow-2xl">
+              <div className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse shadow-[0_0_8px_rgba(0,245,255,0.8)]" />
+              <span className="text-white font-body text-[10px] font-bold tracking-widest uppercase">
+                {t.views} views
+              </span>
+            </div>
           </div>
-        </div>
+        )}
 
         <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 flex items-end p-8">
           <div className="z-10 w-full translate-y-4 group-hover:translate-y-0 transition-transform duration-500">
