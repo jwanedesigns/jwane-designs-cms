@@ -488,12 +488,16 @@ const ClientsManager = () => {
     useEffect(() => { fetchItems(); }, []);
 
     const fetchItems = async () => {
-        const { data, error } = await supabase.from("clients").select("*").order("created_at", { ascending: true });
-        if (error) {
-            console.error("Clients Fetch Error:", error);
-            toast({ variant: "destructive", title: "Fetch Failed" });
-        } else {
-            setItems(data || []);
+        try {
+            const { data, error } = await supabase.from("clients").select("*").order("created_at", { ascending: true });
+            if (error) {
+                console.error("Clients Fetch Error:", error);
+                toast({ variant: "destructive", title: "Fetch Failed" });
+            } else {
+                setItems(data || []);
+            }
+        } catch (err) {
+            console.error("Clients manager categorical failure:", err);
         }
         setLoading(false);
     };
@@ -590,13 +594,32 @@ const ClientsManager = () => {
                 </Dialog>
             </div>
 
+            {items.length === 0 && !loading && (
+                <div className="glass-card rounded-2xl p-12 border-white/5 border-dashed border-2 flex flex-col items-center justify-center text-center space-y-4">
+                    <div className="w-16 h-16 rounded-full bg-primary/5 flex items-center justify-center text-primary/20">
+                        <Users size={32} />
+                    </div>
+                    <div>
+                        <h4 className="font-display uppercase tracking-widest text-foreground/80">No Giants Discovered</h4>
+                        <p className="text-muted-foreground text-xs mt-2 max-w-xs">Add your first client to activate the marquee on the landing page.</p>
+                    </div>
+                    <Button 
+                        onClick={openNewModal}
+                        variant="outline"
+                        className="border-primary/20 hover:bg-primary/5 text-primary text-[10px] font-black uppercase tracking-widest rounded-full"
+                    >
+                        Initialize First Giant
+                    </Button>
+                </div>
+            )}
+
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {items.map(c => (
                     <div key={c.id} className="glass-card rounded-2xl p-6 border-white/5 flex items-center justify-between group">
                         <div className="flex items-center gap-4">
                             <div className="w-12 h-12 rounded-full overflow-hidden bg-black/40 border border-white/10">
                                 {c.avatar_url ? (
-                                    <img src={c.avatar_url} alt={name} className="w-full h-full object-cover" />
+                                    <img src={c.avatar_url} alt={c.name} className="w-full h-full object-cover" />
                                 ) : (
                                     <div className="w-full h-full flex items-center justify-center text-primary/20 bg-primary/5">
                                         <Users size={20} />
@@ -605,7 +628,7 @@ const ClientsManager = () => {
                             </div>
                             <div>
                                 <h5 className="font-bold text-foreground text-sm">{c.name}</h5>
-                                <p className="text-[10px] uppercase tracking-widest text-primary/60">{c.sub_count}</p>
+                                <p className="text-[10px] uppercase tracking-widest text-primary/60">{c.sub_count} subs</p>
                             </div>
                         </div>
                         <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
@@ -652,18 +675,24 @@ const SettingsManager = () => {
 
     const handleUpdate = async (key: string, value: string) => {
         setIsUpdating(true);
-        const { error } = await supabase.from("settings").update({ value }).eq("key", key);
+        // Use upsert to handle missing keys
+        const { error } = await supabase
+            .from("settings")
+            .upsert({ key, value }, { onConflict: 'key' });
+        
         if (error) {
+            console.error("Settings Update Error:", error);
             toast({ variant: "destructive", title: "Update Failed", description: error.message });
         } else {
-            toast({ title: "Updated", description: `${key} successfully saved.` });
+            toast({ title: "Success", description: `${key.replace(/_/g, " ")} saved.` });
             fetchSettings();
         }
         setIsUpdating(false);
     };
 
-    const toggleSection = async (key: string, currentVal: string) => {
-        const newVal = currentVal === "true" ? "false" : "true";
+    const toggleSection = async (key: string) => {
+        const currentSetting = settings.find(s => s.key === key);
+        const newVal = currentSetting?.value === "true" ? "false" : "true";
         await handleUpdate(key, newVal);
     };
 
@@ -677,20 +706,25 @@ const SettingsManager = () => {
                     <h3 className="text-lg font-display uppercase tracking-widest">Section Visibility</h3>
                 </div>
                 <div className="grid gap-4">
-                    {settings.filter(s => s.key.startsWith("show_")).map(s => (
-                        <div key={s.id} className="glass-card p-5 rounded-2xl flex items-center justify-between border-white/5">
-                            <div>
-                                <h4 className="text-sm font-bold capitalize">{s.key.replace("show_", "").replace("_", " ")}</h4>
-                                <p className="text-[10px] text-muted-foreground uppercase tracking-widest mt-1">Live visibility on landing page</p>
+                    {["show_clients_section", "show_testimonials_section", "show_about_section", "show_contact_section"].map(key => {
+                        const setting = settings.find(s => s.key === key);
+                        const isVisible = setting ? setting.value === "true" : true; // Default to true if missing
+                        
+                        return (
+                            <div key={key} className="glass-card p-5 rounded-2xl flex items-center justify-between border-white/5">
+                                <div>
+                                    <h4 className="text-sm font-bold capitalize">{key.replace("show_", "").replace(/_/g, " ")}</h4>
+                                    <p className="text-[10px] text-muted-foreground uppercase tracking-widest mt-1">Live visibility on landing page</p>
+                                </div>
+                                <button 
+                                    onClick={() => toggleSection(key)}
+                                    className={`w-14 h-7 rounded-full transition-all relative ${isVisible ? 'bg-primary' : 'bg-white/10'}`}
+                                >
+                                    <div className={`absolute top-1 w-5 h-5 rounded-full bg-white transition-all ${isVisible ? 'left-8' : 'left-1'}`} />
+                                </button>
                             </div>
-                            <button 
-                                onClick={() => toggleSection(s.key, s.value)}
-                                className={`w-14 h-7 rounded-full transition-all relative ${s.value === "true" ? 'bg-primary' : 'bg-white/10'}`}
-                            >
-                                <div className={`absolute top-1 w-5 h-5 rounded-full bg-white transition-all ${s.value === "true" ? 'left-8' : 'left-1'}`} />
-                            </button>
-                        </div>
-                    ))}
+                        );
+                    })}
                 </div>
             </div>
 

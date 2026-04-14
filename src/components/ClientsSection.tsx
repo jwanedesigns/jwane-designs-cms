@@ -38,13 +38,37 @@ const ClientsSection = () => {
 
   useEffect(() => {
     const fetchData = async () => {
-      // Fetch Clients
-      const { data: clientsData } = await supabase.from("clients").select("*").order("created_at", { ascending: true });
-      if (clientsData) setClients(clientsData);
+      try {
+        // Fetch Clients
+        const { data: clientsData, error: clientsError } = await supabase
+          .from("clients")
+          .select("*")
+          .order("created_at", { ascending: true });
+        
+        if (clientsError) {
+          console.error("ClientsSection: Error fetching clients:", clientsError);
+        } else if (clientsData) {
+          setClients(clientsData);
+        }
 
-      // Fetch Visibility
-      const { data: settingsData } = await supabase.from("settings").select("*").eq("key", "show_clients_section").single();
-      if (settingsData) setVisible(settingsData.value === "true");
+        // Fetch Visibility
+        const { data: settingsData, error: settingsError } = await supabase
+          .from("settings")
+          .select("value")
+          .eq("key", "show_clients_section")
+          .maybeSingle();
+        
+        if (settingsError) {
+          console.error("ClientsSection: Error fetching visibility setting:", settingsError);
+        } else if (settingsData) {
+          setVisible(settingsData.value === "true");
+        } else {
+          // If setting is missing, default to visible if there are clients
+          setVisible(true);
+        }
+      } catch (err) {
+        console.error("ClientsSection: Categorical failure in fetchData:", err);
+      }
     };
     fetchData();
   }, []);
