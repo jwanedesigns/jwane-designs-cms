@@ -72,7 +72,7 @@ const Footer = () => {
         </div>
 
         <div className="text-center md:text-right">
-          <p className="text-muted-foreground font-body text-xs mb-1">© 2025 Jwane Designs.</p>
+          <p className="text-muted-foreground font-body text-xs mb-1">© 2026 Jwane Designs.</p>
           <p className="text-[10px] text-muted-foreground/40 font-mono uppercase tracking-tighter">Engineered for Performance</p>
         </div>
       </div>
