@@ -27,7 +27,7 @@ const ThumbnailRow = ({ direction = "left", speed = 120 }: { direction?: "left" 
           >
             <img 
               src={getAssetUrl(src)} 
-              alt="" 
+              alt="Elite YouTube Thumbnail Portfolio Background" 
               className="w-full h-full object-cover opacity-60 cyan-filter" 
               loading="lazy"
               decoding="async"

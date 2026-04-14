@@ -341,7 +341,7 @@ const PortfolioManager = () => {
         {items.map((item) => (
           <div key={item.id} className="glass-card rounded-2xl overflow-hidden group border-white/5 hover:border-primary/30 transition-all">
              <div className="aspect-video relative">
-                <img src={item.image_url} className="w-full h-full object-cover" />
+                <img src={item.image_url} alt={item.title} className="w-full h-full object-cover" />
                 {item.views && (
                     <div className="absolute top-4 left-4 bg-black/60 backdrop-blur-md px-3 py-1 rounded-full border border-white/10 text-[10px] uppercase font-bold text-primary">
                         {item.views} Views
